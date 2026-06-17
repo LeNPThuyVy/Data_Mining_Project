@@ -1,0 +1,809 @@
+{% extends "layout.html" %}
+{% block title %}Instagram Simulation Dashboard — SocialSim{% endblock %}
+
+{% block body %}
+<!-- ============================================================ NAVBAR -->
+<nav class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg text-white">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="text-3xl animate-pulse">📡</span>
+            <div>
+                <span class="font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-pink-400 to-purple-500 text-xl tracking-tight">SocialSim</span>
+                <span class="hidden sm:inline bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 text-[10px] font-bold px-2 py-0.5 rounded-full ml-2 uppercase">
+                    Behavioral Anomaly Hub
+                </span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
+                <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping"></span>
+                <span class="text-sm font-medium text-slate-300">👤 {{ username }}</span>
+            </div>
+            <a href="{{ url_for('main.logout') }}"
+               class="text-xs bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/50 px-4 py-2 rounded-full font-semibold transition-all">
+                Đăng xuất
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- ============================================================ MAIN LAYOUT -->
+<div class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- ═══════════ CỘT TRÁI: INTERACTIVE SIMULATOR (7 COLS) ═══════════ -->
+    <div class="lg:col-span-7 space-y-6">
+
+        <!-- TAB NAVIGATION -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-2 flex gap-1 overflow-x-auto">
+            <button onclick="switchTab('tab-feed')" id="btn-tab-feed" class="tab-btn active flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl transition-all">
+                📱 <span>Bảng tin (Feed)</span>
+            </button>
+            <button onclick="switchTab('tab-explore')" id="btn-tab-explore" class="tab-btn flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all">
+                🔍 <span>Khám phá (Explore)</span>
+            </button>
+            <button onclick="switchTab('tab-reels')" id="btn-tab-reels" class="tab-btn flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all">
+                🎬 <span>Reels</span>
+            </button>
+            <button onclick="switchTab('tab-messages')" id="btn-tab-messages" class="tab-btn flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all">
+                💬 <span>Nhắn tin (DM)</span>
+            </button>
+            <button onclick="switchTab('tab-account')" id="btn-tab-account" class="tab-btn flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all">
+                👤 <span>Hồ sơ (Profile)</span>
+            </button>
+        </div>
+
+        <!-- SIMULATOR WORKSPACES -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 min-h-[500px] overflow-hidden flex flex-col">
+
+            <!-- 1. FEED WORKSPACE -->
+            <div id="tab-feed" class="sim-tab-content space-y-4 p-5">
+                <!-- FORM ĐĂNG BÀI -->
+                <div class="bg-slate-50 rounded-2xl border border-slate-100 p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0 text-sm">
+                            {{ username[0].upper() }}
+                        </div>
+                        <form id="post-form" class="flex-1">
+                            <textarea id="post-textarea" name="content" rows="2"
+                                placeholder="Chia sẻ cảm xúc của bạn... (Đăng bài -> tăng posts_created_per_week)"
+                                class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white transition"></textarea>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-xs text-slate-400">📷 Ảnh / Video &nbsp;|&nbsp; 😊 Nhãn dán</span>
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4  py-2 rounded-full transition-all">
+                                    Đăng bài
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- MOCK POSTS -->
+                <div class="space-y-4">
+                    {% for post in posts %}
+                    <article class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden post-card" data-post-id="{{ post.id }}">
+                        <div class="flex items-center gap-3 p-4 pb-3">
+                            <img src="{{ post.avatar }}" alt="avatar" class="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                            <div>
+                                <p class="font-bold text-slate-800 text-sm">{{ post.username }}</p>
+                                <p class="text-[10px] text-slate-400 font-medium">{{ post.time }}</p>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-3">
+                            <p class="text-slate-600 text-sm leading-relaxed">{{ post.content }}</p>
+                        </div>
+                        {% if post.image %}
+                        <img src="{{ post.image }}" alt="post image" class="w-full object-cover max-h-72" />
+                        {% endif %}
+                        
+                        <!-- Lượt thích -->
+                        <div class="px-4 py-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-50">
+                            <span>❤️ <span class="like-counter">{{ post.likes }}</span> lượt thích</span>
+                            <span>💬 Bình luận</span>
+                        </div>
+
+                        <!-- Thao tác -->
+                        <div class="px-4 py-2 flex gap-1 border-t border-slate-100 bg-slate-50/50">
+                            <button class="feed-like-btn flex-1 flex items-center justify-center gap-1.5 text-slate-500 hover:text-red-500 hover:bg-red-50 py-2 rounded-xl transition text-sm font-semibold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                                <span>Thích</span>
+                            </button>
+                            <button onclick="toggleComment('cb-{{ post.id }}')" class="flex-1 flex items-center justify-center gap-1.5 text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 py-2 rounded-xl transition text-sm font-semibold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                <span>Bình luận</span>
+                            </button>
+                        </div>
+
+                        <!-- Form Comment -->
+                        <div id="cb-{{ post.id }}" class="hidden px-4 pb-4 pt-2 border-t border-slate-100">
+                            <form class="feed-comment-form flex gap-2 mt-1">
+                                <input type="text" placeholder="Viết bình luận của bạn... (Gửi -> tăng comments_written_per_day)"
+                                       class="flex-1 border border-slate-200 rounded-full px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-slate-50 transition" />
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-full transition font-bold">Gửi</button>
+                            </form>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <!-- DÒNG QUẢNG CÁO CUỘN (Scroll Ad Impression) -->
+                <div id="feed-ad-card" class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 shadow-sm space-y-3 relative overflow-hidden">
+                    <span class="absolute top-3 right-3 bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Tài trợ</span>
+                    <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wide">💡 Đề xuất đặc biệt</h4>
+                    <p class="text-slate-700 font-extrabold text-sm leading-snug">
+                        🚀 Tham gia khóa học "Khai phá Dữ liệu Mạng xã hội" ngay hôm nay — Giảm giá 70%!
+                    </p>
+                    <p class="text-xs text-slate-500">
+                        Học cách phát hiện bot, spammer, phân tích cụm K-Means, DBSCAN với Python.
+                    </p>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-[10px] text-amber-600 font-semibold">(Cuộn qua thẻ này để tăng ads_viewed_per_day)</span>
+                        <button id="feed-ad-btn" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow transition">
+                            Xem khóa học
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. EXPLORE WORKSPACE -->
+            <div id="tab-explore" class="sim-tab-content space-y-4 p-5 hidden">
+                <div class="bg-slate-50 rounded-2xl border border-slate-100 p-4">
+                    <h3 class="text-sm font-bold text-slate-700">🔍 Trang khám phá (Explore)</h3>
+                    <p class="text-xs text-slate-400 mt-1">Di chuyển chuột hoặc click lên các bức ảnh để tăng <b>time_on_explore_per_day</b> và <b>likes_given_per_day</b>.</p>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    {% for idx in range(1, 10) %}
+                    <div class="explore-item relative aspect-square rounded-xl overflow-hidden cursor-pointer group shadow-sm">
+                        <img src="https://picsum.photos/seed/explore_{{ idx }}/300/300" alt="explore" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-sm font-bold transition-all">
+                            <span>❤️ Click để thích</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 3. REELS WORKSPACE -->
+            <div id="tab-reels" class="sim-tab-content p-5 hidden flex-col items-center justify-center flex-1">
+                <div class="w-full max-w-sm bg-slate-950 rounded-3xl border border-slate-800 overflow-hidden relative shadow-2xl flex flex-col h-[550px]">
+                    <!-- MOCK VIDEO DISPLAY -->
+                    <div class="flex-1 relative bg-slate-900 flex items-center justify-center overflow-hidden">
+                        <img id="reel-placeholder" src="https://picsum.photos/seed/reels_1/360/640" alt="Reel Video" class="w-full h-full object-cover" />
+                        
+                        <!-- Lớp phủ thông tin -->
+                        <div class="absolute bottom-4 left-4 right-16 text-white space-y-2 pointer-events-none drop-shadow-md">
+                            <p class="font-bold text-sm">@social_creator</p>
+                            <p class="text-xs text-slate-200">Video xu hướng Reels cực hot! Thử nhấn Next Video để xem clip tiếp theo 🎵</p>
+                        </div>
+                        
+                        <!-- Thanh điều khiển bên phải -->
+                        <div class="absolute right-3 bottom-6 flex flex-col items-center gap-5 z-10 text-white">
+                            <button id="reel-like-btn" class="w-11 h-11 bg-slate-800/60 rounded-full flex flex-col items-center justify-center hover:bg-slate-700/80 transition shadow">
+                                <span class="text-lg">❤️</span>
+                            </button>
+                            <span class="text-[10px] -mt-4 font-bold drop-shadow-md">1.2K</span>
+                            
+                            <button id="reel-comment-btn" class="w-11 h-11 bg-slate-800/60 rounded-full flex flex-col items-center justify-center hover:bg-slate-700/80 transition shadow">
+                                <span class="text-lg">💬</span>
+                            </button>
+                            <span class="text-[10px] -mt-4 font-bold drop-shadow-md">84</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Nút chuyển video -->
+                    <div class="p-3 bg-slate-900 flex gap-2 border-t border-slate-800">
+                        <button onclick="nextReel()" class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-md">
+                            🎬 Next Video (Tăng reels_watched_per_day)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. MESSAGES (DM) WORKSPACE -->
+            <div id="tab-messages" class="sim-tab-content grid grid-cols-3 flex-1 hidden">
+                <!-- Danh sách liên hệ -->
+                <div class="col-span-1 border-r border-slate-100 p-3 bg-slate-50/50 space-y-3">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2">Hộp thoại</h4>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer">
+                            <div class="w-8 h-8 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">S</div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 truncate">Sarah Connor</p>
+                                <p class="text-[10px] text-green-500 font-medium">Đang hoạt động</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-white cursor-pointer transition">
+                            <div class="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center">A</div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 truncate">Alex Mercer</p>
+                                <p class="text-[10px] text-slate-400 truncate">Hoạt động 2 giờ trước</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Khung chat -->
+                <div class="col-span-2 flex flex-col h-[500px]">
+                    <div class="p-3.5 border-b border-slate-100 flex items-center justify-between bg-white">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center">S</div>
+                            <span class="text-xs font-bold text-slate-800">Sarah Connor</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Khung bong bóng chat -->
+                    <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/40">
+                        <div class="flex gap-2">
+                            <div class="w-6 h-6 rounded-full bg-purple-500 text-white text-[9px] font-bold flex-shrink-0 flex items-center justify-center">S</div>
+                            <div class="bg-white border border-slate-100 text-slate-700 text-xs px-3 py-2 rounded-2xl rounded-tl-none max-w-[80%] shadow-sm">
+                                Xin chào! Dự án Khai phá dữ liệu của bạn tới đâu rồi? 🧑‍💻
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Input nhập tin nhắn -->
+                    <form id="chat-input-form" class="p-3 border-t border-slate-100 bg-white flex gap-2">
+                        <input id="chat-input-text" type="text" placeholder="Nhập tin nhắn... (Gửi -> tăng dms_sent_per_week)"
+                               class="flex-1 border border-slate-200 rounded-full px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-300 transition" />
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-full font-bold transition">Gửi</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 5. ACCOUNT PROFILE WORKSPACE -->
+            <div id="tab-account" class="sim-tab-content p-6 space-y-6 hidden">
+                <div class="bg-slate-50 rounded-2xl border border-slate-100 p-4">
+                    <h3 class="text-sm font-bold text-slate-700">👤 Cấu hình thông tin tài khoản</h3>
+                    <p class="text-xs text-slate-400 mt-1">Điều chỉnh trực tiếp các thông số nền tảng của tài khoản người dùng Instagram.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500">👥 Số người theo dõi (followers_count)</label>
+                        <input type="number" id="acc-followers" class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500">👤 Số người đang theo dõi (following_count)</label>
+                        <input type="number" id="acc-following" class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500">🔗 Số tài khoản liên kết (linked_accounts_count)</label>
+                        <input type="number" id="acc-linked" min="0" max="10" class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500">🗓️ Số ngày kể từ lần đăng nhập cuối (days_since_last_login)</label>
+                        <input type="number" id="acc-last-login" min="0" class="w-full border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ═══════════ SESSION HISTORY TABLE ═══════════ -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                    <h3 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                        📋 Lịch Sử Phân Tích Hành Vi
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        Hiển thị <span id="history-count" class="font-bold text-indigo-600">0</span> / <span id="history-total">0</span> session gần nhất
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportCSV()" class="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm">
+                        ⬇ Export CSV
+                    </button>
+                    <button onclick="clearHistory()" class="flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-600 text-xs font-bold px-3 py-2 rounded-xl transition-all">
+                        🗑 Xóa lịch sử
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-slate-600 text-xs">
+                    <thead>
+                        <tr class="bg-slate-100/50 text-[10px] text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100">
+                            <th class="py-3 px-4 text-left font-bold">Thời gian</th>
+                            <th class="py-3 px-4 text-left font-bold">Active Mins</th>
+                            <th class="py-3 px-4 text-center font-bold">Likes / Day</th>
+                            <th class="py-3 px-4 text-center font-bold">Comments / Day</th>
+                            <th class="py-3 px-4 text-center font-bold">Reels / Day</th>
+                            <th class="py-3 px-4 text-center font-bold">Intensity</th>
+                            <th class="py-3 px-4 text-center font-bold">Density</th>
+                            <th class="py-3 px-4 text-center font-bold">Thuật toán</th>
+                            <th class="py-3 px-4 text-left font-bold">Kết luận</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody" class="divide-y divide-slate-100">
+                        <tr>
+                            <td colspan="9" class="text-center py-12 text-slate-400 text-xs">
+                                Chưa có session nào được ghi nhận. Tương tác và bấm "Phân tích" để ghi nhận dữ liệu!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══════════ CỘT PHẢI: BEHAVIOR DASHBOARD SLIDERS & SETTINGS (5 COLS) ═══════════ -->
+    <aside class="lg:col-span-5 space-y-6">
+
+        <!-- THUẬT TOÁN PHÂN CỤM & PRESETS -->
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 space-y-4">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                ⚙️ Cấu Hình Thuật Toán
+            </h3>
+            
+            <div class="grid grid-cols-3 gap-2">
+                <label class="flex items-center gap-2.5 p-3 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 cursor-pointer transition has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50/50">
+                    <input type="radio" name="algorithm" value="kmeans" checked class="accent-indigo-600" />
+                    <div>
+                        <p class="text-xs font-bold text-slate-700">K-Means</p>
+                        <p class="text-[10px] text-slate-400">3 cụm · PCA-9</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-2.5 p-3 rounded-2xl border border-slate-100 hover:border-purple-200 hover:bg-purple-50/30 cursor-pointer transition has-[:checked]:border-purple-400 has-[:checked]:bg-purple-50/50">
+                    <input type="radio" name="algorithm" value="dbscan" class="accent-purple-600" />
+                    <div>
+                        <p class="text-xs font-bold text-slate-700">DBSCAN</p>
+                        <p class="text-[10px] text-slate-400">eps=1.5</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-2.5 p-3 rounded-2xl border border-slate-100 hover:border-pink-200 hover:bg-pink-50/30 cursor-pointer transition has-[:checked]:border-pink-400 has-[:checked]:bg-pink-50/50">
+                    <input type="radio" name="algorithm" value="dbscan_17" class="accent-pink-600" />
+                    <div>
+                        <p class="text-xs font-bold text-slate-700">DBSCAN</p>
+                        <p class="text-[10px] text-slate-400">eps=1.7</p>
+                    </div>
+                </label>
+            </div>
+            <a href="/admin" target="_blank" class="flex items-center gap-2 mt-2 text-[11px] font-bold text-indigo-600 hover:underline">
+              📊 Xem kết quả phân cụm (Admin Dashboard) →
+            </a>
+
+            <hr class="border-slate-100" />
+
+            <!-- PRESET SYSTEMS -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">🎭 Giả Lập Mẫu Hành Vi</h4>
+                    <button onclick="resetPreset()" class="text-xs text-indigo-600 font-bold hover:underline transition">Đặt lại</button>
+                </div>
+                
+                <div id="preset-mode-badge" class="hidden bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold px-3 py-2 rounded-xl text-center">
+                    ⚡ Đang áp dụng dữ liệu giả lập (Preset)
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button class="preset-btn flex items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-green-400 hover:bg-green-50/30 transition text-left cursor-pointer" data-preset="normal" onclick="applyPreset('normal')">
+                        <span class="text-2xl">🧑</span>
+                        <div>
+                            <p class="font-bold text-slate-700 text-xs">Normal User</p>
+                            <p class="text-[9px] text-slate-400">Lướt nhẹ, tương tác ít</p>
+                        </div>
+                    </button>
+                    <button class="preset-btn flex items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-orange-400 hover:bg-orange-50/30 transition text-left cursor-pointer" data-preset="spammer" onclick="applyPreset('spammer')">
+                        <span class="text-2xl">📢</span>
+                        <div>
+                            <p class="font-bold text-slate-700 text-xs">Spammer</p>
+                            <p class="text-[9px] text-slate-400">Liên tục like & comment</p>
+                        </div>
+                    </button>
+                    <button class="preset-btn flex items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-red-400 hover:bg-red-50/30 transition text-left cursor-pointer" data-preset="bot" onclick="applyPreset('bot')">
+                        <span class="text-2xl">🤖</span>
+                        <div>
+                            <p class="font-bold text-slate-700 text-xs">Automation Bot</p>
+                            <p class="text-[9px] text-slate-400">Tần suất click cực lớn</p>
+                        </div>
+                    </button>
+                    <button class="preset-btn flex items-center gap-2 p-3 rounded-xl border border-slate-100 hover:border-blue-400 hover:bg-blue-50/30 transition text-left cursor-pointer" data-preset="adclicker" onclick="applyPreset('adclicker')">
+                        <span class="text-2xl">🎣</span>
+                        <div>
+                            <p class="font-bold text-slate-700 text-xs">Ad-Clicker</p>
+                            <p class="text-[9px] text-slate-400">Chỉ click ads kiếm tiền</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 25 BEHAVIOR SLIDERS (PANEL TƯƠNG TÁC CHÍNH) -->
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 px-5 py-4 flex items-center justify-between text-white">
+                <div>
+                    <h3 class="font-bold text-sm">📊 Bảng Điều Khiển Hành Vi</h3>
+                    <p class="text-[10px] text-slate-400">Cập nhật theo tương tác hoặc kéo thanh trượt để tùy chỉnh 25 tham số</p>
+                </div>
+                <span class="bg-indigo-600/60 text-indigo-300 border border-indigo-500/50 text-[10px] font-bold px-2 py-0.5 rounded">25 Features</span>
+            </div>
+
+            <!-- Sliders Container -->
+            <div class="p-5 space-y-6 max-h-[600px] overflow-y-auto custom-scrollbar">
+
+                <!-- 1. TIME METRICS -->
+                <div class="space-y-3.5">
+                    <h4 class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider border-b border-indigo-50 pb-1 flex items-center gap-1.5">
+                        ⏱️ Phân bổ Thời gian (Phút)
+                    </h4>
+                    
+                    <!-- daily_active_minutes_instagram -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500 font-medium">Tổng thời gian hoạt động/ngày (daily_active_minutes_instagram)</span>
+                            <span id="val-daily-active-mins" class="font-bold text-indigo-600 tabular-nums">0 m</span>
+                        </div>
+                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden relative border border-slate-200/50">
+                            <div id="bar-daily-active-mins" class="h-full bg-indigo-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[9px] text-slate-400">(Tự động bằng tổng thời gian bên dưới)</p>
+                    </div>
+
+                    <!-- time_on_feed_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Thời gian xem Feed (time_on_feed_per_day)</span>
+                            <span id="val-time-on-feed" class="font-bold text-slate-700 tabular-nums">0 m</span>
+                        </div>
+                        <input type="range" id="slider-time-on-feed" min="0" max="240" value="0" class="w-full accent-indigo-600 slider-tracker" />
+                    </div>
+
+                    <!-- time_on_explore_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Thời gian trang Khám phá (time_on_explore_per_day)</span>
+                            <span id="val-time-on-explore" class="font-bold text-slate-700 tabular-nums">0 m</span>
+                        </div>
+                        <input type="range" id="slider-time-on-explore" min="0" max="180" value="0" class="w-full accent-indigo-600 slider-tracker" />
+                    </div>
+
+                    <!-- time_on_reels_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Thời gian xem Reels (time_on_reels_per_day)</span>
+                            <span id="val-time-on-reels" class="font-bold text-slate-700 tabular-nums">0 m</span>
+                        </div>
+                        <input type="range" id="slider-time-on-reels" min="0" max="300" value="0" class="w-full accent-indigo-600 slider-tracker" />
+                    </div>
+
+                    <!-- time_on_messages_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Thời gian nhắn tin (time_on_messages_per_day)</span>
+                            <span id="val-time-on-messages" class="font-bold text-slate-700 tabular-nums">0 m</span>
+                        </div>
+                        <input type="range" id="slider-time-on-messages" min="0" max="180" value="0" class="w-full accent-indigo-600 slider-tracker" />
+                    </div>
+
+                    <!-- sessions_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Số phiên truy cập/ngày (sessions_per_day)</span>
+                            <span id="val-sessions-per-day" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-sessions-per-day" min="1" max="50" value="5" class="w-full accent-indigo-600 slider-tracker" />
+                    </div>
+
+                    <!-- average_session_length_minutes -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-500 font-medium">Độ dài phiên trung bình (average_session_length_minutes)</span>
+                            <span id="val-avg-session-len" class="font-bold text-indigo-600 tabular-nums">0.0 m</span>
+                        </div>
+                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden relative border border-slate-200/50">
+                            <div id="bar-avg-session-len" class="h-full bg-indigo-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[9px] text-slate-400">(Bằng: active_minutes / sessions_per_day)</p>
+                    </div>
+                </div>
+
+                <!-- 2. INTERACTION & ACTION METRICS -->
+                <div class="space-y-3.5">
+                    <h4 class="text-[11px] font-bold text-rose-600 uppercase tracking-wider border-b border-rose-50 pb-1 flex items-center gap-1.5">
+                        ❤️ Hoạt động & Tương tác (Hàng ngày)
+                    </h4>
+
+                    <!-- likes_given_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Lượt thích nhấn/ngày (likes_given_per_day)</span>
+                            <span id="val-likes-given" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-likes-given" min="0" max="1000" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- comments_written_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Lượt bình luận viết/ngày (comments_written_per_day)</span>
+                            <span id="val-comments-written" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-comments-written" min="0" max="500" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- reels_watched_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Số clip Reels đã xem/ngày (reels_watched_per_day)</span>
+                            <span id="val-reels-watched" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-reels-watched" min="0" max="500" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- posts_created_per_week -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Bài viết đăng/tuần (posts_created_per_week)</span>
+                            <span id="val-posts-created" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-posts-created" min="0" max="50" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- dms_sent_per_week -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Tin nhắn DM gửi đi/tuần (dms_sent_per_week)</span>
+                            <span id="val-dms-sent" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-dms-sent" min="0" max="1000" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- dms_received_per_week -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Tin nhắn DM nhận được/tuần (dms_received_per_week)</span>
+                            <span id="val-dms-received" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-dms-received" min="0" max="1000" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- ads_viewed_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Số quảng cáo hiển thị/ngày (ads_viewed_per_day)</span>
+                            <span id="val-ads-viewed" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-ads-viewed" min="0" max="200" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- ads_clicked_per_day -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Lượt click quảng cáo/ngày (ads_clicked_per_day)</span>
+                            <span id="val-ads-clicked" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-ads-clicked" min="0" max="100" value="0" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+
+                    <!-- notification_response_rate -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Tỉ lệ phản hồi thông báo (notification_response_rate)</span>
+                            <span id="val-notif-rate" class="font-bold text-slate-700 tabular-nums">0 %</span>
+                        </div>
+                        <input type="range" id="slider-notif-rate" min="0" max="100" value="50" class="w-full accent-rose-500 slider-tracker" />
+                    </div>
+                </div>
+
+                <!-- 3. DEMOGRAPHIC / ACCOUNT METRICS -->
+                <div class="space-y-3.5">
+                    <h4 class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider border-b border-emerald-50 pb-1 flex items-center gap-1.5">
+                        👤 Hồ sơ & Trạng thái tài khoản
+                    </h4>
+
+                    <!-- followers_count -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Người theo dõi (followers_count)</span>
+                            <span id="val-followers" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-followers" min="0" max="100000" step="50" value="500" class="w-full accent-emerald-500 slider-tracker" />
+                    </div>
+
+                    <!-- following_count -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Đang theo dõi (following_count)</span>
+                            <span id="val-following" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-following" min="0" max="10000" step="10" value="300" class="w-full accent-emerald-500 slider-tracker" />
+                    </div>
+
+                    <!-- linked_accounts_count -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Tài khoản liên kết (linked_accounts_count)</span>
+                            <span id="val-linked-accounts" class="font-bold text-slate-700 tabular-nums">0</span>
+                        </div>
+                        <input type="range" id="slider-linked-accounts" min="0" max="10" value="1" class="w-full accent-emerald-500 slider-tracker" />
+                    </div>
+
+                    <!-- days_since_last_login -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-600">Số ngày kể từ lần login cuối (days_since_last_login)</span>
+                            <span id="val-days-since-login" class="font-bold text-slate-700 tabular-nums">0 d</span>
+                        </div>
+                        <input type="range" id="slider-days-since-login" min="0" max="365" value="1" class="w-full accent-emerald-500 slider-tracker" />
+                    </div>
+                </div>
+
+                <!-- 4. COMPUTED METRICS -->
+                <div class="space-y-3.5">
+                    <h4 class="text-[11px] font-bold text-purple-600 uppercase tracking-wider border-b border-purple-5pb-1 flex items-center gap-1.5">
+                        📊 Chỉ số tính toán phái sinh (Computed Indices)
+                    </h4>
+
+                    <!-- interact_density -->
+                    <div class="flex items-center justify-between text-xs py-1 border-b border-slate-50">
+                        <span class="text-slate-600">Mật độ tương tác (interact_density) <span class="text-[9px] text-slate-400 font-normal">((Like+Comment)/ActiveMins)</span></span>
+                        <span id="val-interact-density" class="font-bold text-purple-600 tabular-nums">0.000</span>
+                    </div>
+
+                    <!-- interact_per_session -->
+                    <div class="flex items-center justify-between text-xs py-1 border-b border-slate-50">
+                        <span class="text-slate-600">Tương tác mỗi phiên (interact_per_session) <span class="text-[9px] text-slate-400 font-normal">((Like+Comment)/Sessions)</span></span>
+                        <span id="val-interact-per-session" class="font-bold text-purple-600 tabular-nums">0.000</span>
+                    </div>
+
+                    <!-- dm_ratio -->
+                    <div class="flex items-center justify-between text-xs py-1 border-b border-slate-50">
+                        <span class="text-slate-600">Tỷ lệ DM gửi đi/nhận về (dm_ratio) <span class="text-[9px] text-slate-400 font-normal">(Sent/(Sent+Recv))</span></span>
+                        <span id="val-dm-ratio" class="font-bold text-purple-600 tabular-nums">0.000</span>
+                    </div>
+
+                    <!-- activity_per_session -->
+                    <div class="flex items-center justify-between text-xs py-1 border-b border-slate-50">
+                        <span class="text-slate-600">Hoạt động mỗi phiên (activity_per_session) <span class="text-[9px] text-slate-400 font-normal">(DailyActions/Sessions)</span></span>
+                        <span id="val-activity-per-session" class="font-bold text-purple-600 tabular-nums">0.000</span>
+                    </div>
+
+                    <!-- activity_intensity -->
+                    <div class="flex items-center justify-between text-xs py-1">
+                        <span class="text-slate-600">Cường độ hoạt động (activity_intensity) <span class="text-[9px] text-slate-400 font-normal">(DailyActions/ActiveMins)</span></span>
+                        <span id="val-activity-intensity" class="font-bold text-purple-600 tabular-nums">0.000</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Action Button -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50">
+                <button id="submit-btn" onclick="submitSession()"
+                        class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                    🔬 Chốt Session & Phân Tích Hành Vi
+                </button>
+                <p class="text-[10px] text-slate-400 text-center mt-2.5">
+                    Gửi 25 đặc trưng telemetry lên server để mô hình phân cụm phát hiện bất thường.
+                </p>
+            </div>
+        </div>
+
+    </aside>
+</div>
+
+<!-- ============================================================ MODAL KẾT QUẢ -->
+<div id="result-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden max-h-[95vh] overflow-y-auto flex flex-col">
+
+        <!-- Header -->
+        <div id="modal-header" class="p-6 rounded-t-3xl border-b border-slate-100">
+            <div class="text-center relative">
+                <div id="modal-icon" class="text-5xl animate-bounce"></div>
+                <h2 id="modal-title" class="text-xl font-extrabold mt-2"></h2>
+                <p id="modal-subtitle" class="text-sm mt-1"></p>
+                <div id="modal-meta" class="flex justify-center gap-2 mt-3 flex-wrap"></div>
+            </div>
+        </div>
+
+        <!-- Body: radar chart + feature breakdown side by side -->
+        <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 overflow-y-auto flex-1">
+
+            <!-- Radar Chart (Left 5 Cols) -->
+            <div class="md:col-span-5 flex flex-col justify-center items-center bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 text-center">
+                    📈 Radar Profile (8 Core Dimensions)
+                </p>
+                <div class="relative w-full h-64 flex items-center justify-center">
+                    <canvas id="radar-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Feature Breakdown (Right 7 Cols) -->
+            <div class="md:col-span-7 space-y-3">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    🔢 Chi tiết 25 Đặc Trưng Hành Vi
+                </p>
+                <div class="max-h-80 overflow-y-auto border border-slate-100 rounded-2xl custom-scrollbar">
+                    <table class="w-full text-xs">
+                        <thead class="bg-slate-50 sticky top-0 border-b border-slate-100 text-[10px] uppercase font-bold text-slate-400">
+                            <tr>
+                                <th class="py-2 px-3 text-left">Đặc trưng</th>
+                                <th class="py-2 px-3 text-right">Giá trị</th>
+                                <th class="py-2 px-3 text-center">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-features" class="divide-y divide-slate-50 text-slate-600">
+                            <!-- Rows loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Suspicious Features Explanation -->
+        <div id="modal-suspicious" class="hidden mx-6 mb-4 bg-red-50 border border-red-200 rounded-2xl p-4">
+            <!-- Loaded dynamically -->
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 pb-6 pt-3 border-t border-slate-50 bg-slate-50/50 flex justify-end">
+            <button onclick="closeResultModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl transition text-sm shadow">
+                Đóng & Tiếp tục trải nghiệm
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================================ FLOATING NOTIFICATIONS -->
+<div id="notification-hub" class="fixed bottom-5 right-5 z-40 space-y-2 max-w-sm pointer-events-auto">
+    <!-- Popup DMs / Warnings appear here -->
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tracking.js') }}"></script>
+<script>
+    function toggleComment(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle("hidden");
+    }
+
+    function switchTab(tabId) {
+        // Hide all tabs
+        document.querySelectorAll('.sim-tab-content').forEach(el => el.classList.add('hidden'));
+        // Show active tab
+        document.getElementById(tabId).classList.remove('hidden');
+
+        // Update nav buttons style
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+            btn.classList.add('text-slate-500', 'hover:bg-slate-50');
+        });
+        const activeBtn = document.getElementById('btn-' + tabId);
+        if (activeBtn) {
+            activeBtn.classList.remove('text-slate-500', 'hover:bg-slate-50');
+            activeBtn.classList.add('active', 'bg-indigo-600', 'text-white');
+        }
+
+        // Notify tracking of tab switch to track time spent
+        if (window.onTabChanged) {
+            window.onTabChanged(tabId);
+        }
+    }
+</script>
+<style>
+    /* Styling custom sliders and scrollbars */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
+{% endblock %}

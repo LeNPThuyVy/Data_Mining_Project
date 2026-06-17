@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Kết quả Phân cụm</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { brand: '#6366f1' } } } }
+  </script>
+  <style>
+    .img-card img { transition: transform 0.3s ease; }
+    .img-card:hover img { transform: scale(1.04); }
+    .tab-active { background:#4f46e5; color:#fff; }
+    .tab-inactive { background:#fff; color:#475569; }
+    .tab-inactive:hover { background:#f1f5f9; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
+<!-- Header -->
+<header class="bg-gradient-to-r from-indigo-700 to-purple-700 text-white px-6 py-4 shadow-lg">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl font-bold">📊</div>
+      <div>
+        <h1 class="font-black text-lg leading-tight">Admin Dashboard</h1>
+        <p class="text-indigo-200 text-xs">Đồ án Khai phá Dữ liệu — Phân cụm Hành vi Người dùng Instagram</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <a href="/api/export/csv" class="bg-white/10 hover:bg-white/20 border border-white/20 transition text-xs font-bold px-3 py-1.5 rounded-lg">
+        ⬇ Xuất CSV
+      </a>
+      <a href="/feed" class="bg-white/10 hover:bg-white/20 border border-white/20 transition text-xs font-bold px-3 py-1.5 rounded-lg">
+        ← Feed
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+
+  <!-- ── Thống kê tổng quan ── -->
+  <section>
+    <h2 class="text-sm font-extrabold text-slate-500 uppercase tracking-wider mb-4">📈 Thống kê Live Session</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
+        <p class="text-4xl font-black text-indigo-600">{{ stats.total }}</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Tổng Session</p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
+        <p class="text-4xl font-black text-emerald-500">{{ stats.normal }}</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Bình thường</p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
+        <p class="text-4xl font-black text-red-500">{{ stats.anomalies }}</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Bất thường</p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 text-center">
+        <p class="text-4xl font-black text-amber-500">{{ stats.anomaly_pct }}%</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Tỷ lệ Anomaly</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Model info cards ── -->
+  <section class="grid md:grid-cols-3 gap-4">
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-indigo-100 p-5">
+      <h3 class="font-extrabold text-indigo-700 mb-3 flex items-center gap-2">📐 K-Means</h3>
+      <dl class="text-xs space-y-1.5 text-slate-600">
+        <div class="flex justify-between"><dt class="font-bold">n_clusters</dt><dd>3</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">n_features</dt><dd>9 (PCA)</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Training size</dt><dd>500,000</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Cluster A (normal)</dt><dd>222,122</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Cluster 1 (anomaly)</dt><dd>35,596</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Cluster B (normal)</dt><dd>242,281</dd></div>
+      </dl>
+    </div>
+    <div class="bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-2xl border border-purple-100 p-5">
+      <h3 class="font-extrabold text-purple-700 mb-3 flex items-center gap-2">🔵 DBSCAN eps=1.5</h3>
+      <dl class="text-xs space-y-1.5 text-slate-600">
+        <div class="flex justify-between"><dt class="font-bold">Core points</dt><dd>488,480</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Noise (anomaly)</dt><dd>11,519 (2.3%)</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Phương pháp</dt><dd>Nearest-neighbor</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Feature space</dt><dd>PCA-9</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Eps calibrated</dt><dd>1.77</dd></div>
+      </dl>
+    </div>
+    <div class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl border border-pink-100 p-5">
+      <h3 class="font-extrabold text-pink-700 mb-3 flex items-center gap-2">🔵 DBSCAN eps=1.7</h3>
+      <dl class="text-xs space-y-1.5 text-slate-600">
+        <div class="flex justify-between"><dt class="font-bold">Core points</dt><dd>494,945</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Noise (anomaly)</dt><dd>5,054 (1.0%)</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Phương pháp</dt><dd>Nearest-neighbor</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Feature space</dt><dd>PCA-9</dd></div>
+        <div class="flex justify-between"><dt class="font-bold">Eps calibrated</dt><dd>2.00</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ── Session history table ── -->
+  {% if sessions %}
+  <section>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-extrabold text-slate-500 uppercase tracking-wider">🔴 20 Session Gần Nhất</h2>
+      <button onclick="fetch('/api/clear_sessions',{method:'POST'}).then(()=>location.reload())"
+        class="text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 hover:border-red-300 px-3 py-1.5 rounded-lg transition">
+        🗑 Xóa History
+      </button>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-slate-50 border-b border-slate-100">
+            <tr class="text-slate-400 uppercase tracking-wider text-[10px]">
+              <th class="px-4 py-3 text-left">Thời gian</th>
+              <th class="px-4 py-3 text-left">User</th>
+              <th class="px-4 py-3 text-center">Thuật toán</th>
+              <th class="px-4 py-3 text-center">Cụm</th>
+              <th class="px-4 py-3 text-left">Nhãn</th>
+              <th class="px-4 py-3 text-center">Conf.</th>
+              <th class="px-4 py-3 text-center">Kết quả</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in sessions|reverse %}
+            {% set pred = s.prediction or {} %}
+            <tr class="border-t border-slate-50 hover:bg-slate-50/60 transition">
+              <td class="px-4 py-3 font-mono text-slate-400 whitespace-nowrap">{{ s.timestamp }}</td>
+              <td class="px-4 py-3 font-bold text-slate-700">{{ s.username }}</td>
+              <td class="px-4 py-3 text-center">
+                {% set algo = pred.algorithm or '' %}
+                {% if 'DBSCAN' in algo %}
+                  <span class="bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-lg font-bold text-[10px]">{{ algo }}</span>
+                {% else %}
+                  <span class="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-lg font-bold text-[10px]">{{ algo }}</span>
+                {% endif %}
+              </td>
+              <td class="px-4 py-3 text-center font-black font-mono text-indigo-600 text-sm">{{ pred.cluster_id }}</td>
+              <td class="px-4 py-3 text-slate-600 max-w-[220px] truncate" title="{{ pred.label }}">{{ pred.label }}</td>
+              <td class="px-4 py-3 text-center font-mono font-bold
+                {% if pred.confidence >= 0.8 %}text-emerald-600{% elif pred.confidence >= 0.65 %}text-amber-600{% else %}text-slate-400{% endif %}">
+                {{ (pred.confidence * 100)|int }}%
+              </td>
+              <td class="px-4 py-3 text-center">
+                {% if pred.is_anomaly %}
+                  <span class="bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full text-[10px] font-bold">🚨 Anomaly</span>
+                {% else %}
+                  <span class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full text-[10px] font-bold">✅ Normal</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  {% else %}
+  <section class="bg-white rounded-2xl border border-slate-100 p-10 text-center">
+    <p class="text-slate-400 text-sm">Chưa có session nào. Hãy vào <a href="/feed" class="text-indigo-500 font-bold underline">Feed</a> và để hệ thống tracking hoạt động.</p>
+  </section>
+  {% endif %}
+
+  <!-- ── Gallery ── -->
+  <section>
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-sm font-extrabold text-slate-500 uppercase tracking-wider">🖼️ Kết quả Phân cụm</h2>
+      <div class="flex gap-2">
+        <button onclick="showTab('kmeans')" id="tab-kmeans" class="tab-active text-xs font-bold px-4 py-2 rounded-xl border border-transparent transition">
+          📐 K-Means (3)
+        </button>
+        <button onclick="showTab('dbscan')" id="tab-dbscan" class="tab-inactive text-xs font-bold px-4 py-2 rounded-xl border border-slate-200 transition">
+          🔵 DBSCAN (14)
+        </button>
+      </div>
+    </div>
+
+    <!-- K-Means panel -->
+    <div id="panel-kmeans">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {% for img in gallery.kmeans %}
+        <div class="img-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md cursor-pointer transition"
+             onclick="openLightbox('/static/clustering_images/{{ img.filename }}', '{{ img.filename }}')">
+          <div class="overflow-hidden h-56 bg-slate-50">
+            <img src="/static/clustering_images/{{ img.filename }}"
+                 alt="{{ img.filename }}"
+                 class="w-full h-full object-contain p-3"
+                 loading="lazy">
+          </div>
+          <div class="px-4 py-3 border-t border-slate-50">
+            <p class="text-[11px] font-bold text-slate-600 truncate">{{ img.filename.replace('.png','').replace('_', ' ') }}</p>
+            <p class="text-[10px] text-indigo-400 font-medium mt-0.5">Click để xem toàn màn hình</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- DBSCAN panel -->
+    <div id="panel-dbscan" class="hidden">
+      {% set eps_list = ['1.3', '1.5', '1.7', '2.0', '2.2'] %}
+      {% for eps in eps_list %}
+        {% set group = [] %}
+        {% for img in gallery.dbscan %}
+          {% if eps + 'EpsValue' in img.filename %}{% set _ = group.append(img) %}{% endif %}
+        {% endfor %}
+        {% if group %}
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="bg-purple-100 text-purple-700 font-black text-xs px-3 py-1 rounded-lg">eps = {{ eps }}</span>
+            <div class="flex-1 h-px bg-slate-200"></div>
+            {% if eps == '1.5' %}<span class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded">★ Model được dùng</span>{% endif %}
+            {% if eps == '1.7' %}<span class="text-[10px] font-bold text-pink-500 bg-pink-50 px-2 py-0.5 rounded">★ Model được dùng</span>{% endif %}
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {% for img in group %}
+            <div class="img-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md cursor-pointer transition"
+                 onclick="openLightbox('/static/clustering_images/{{ img.filename }}', '{{ img.filename }}')">
+              <div class="overflow-hidden h-56 bg-slate-50">
+                <img src="/static/clustering_images/{{ img.filename }}"
+                     alt="{{ img.filename }}"
+                     class="w-full h-full object-contain p-3"
+                     loading="lazy">
+              </div>
+              <div class="px-4 py-3 border-t border-slate-50">
+                <p class="text-[11px] font-bold text-slate-600 truncate">{{ img.filename.replace('.png','').replace('_EpsValue', '').replace('_', ' ') }}</p>
+                <p class="text-[10px] text-indigo-400 font-medium mt-0.5">Click để xem toàn màn hình</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4"
+     onclick="closeLightbox()">
+  <div class="max-w-5xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100">
+      <p id="lb-title" class="text-xs font-bold text-slate-600 truncate max-w-lg"></p>
+      <button onclick="closeLightbox()"
+        class="text-slate-400 hover:text-slate-700 font-bold text-sm ml-4 shrink-0 hover:bg-slate-200 w-7 h-7 rounded-lg flex items-center justify-center transition">✕</button>
+    </div>
+    <div class="p-4 flex items-center justify-center bg-slate-50 max-h-[82vh] overflow-auto">
+      <img id="lb-img" src="" alt="" class="max-w-full max-h-[78vh] object-contain rounded-lg shadow">
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(tab) {
+  ['kmeans','dbscan'].forEach(t => {
+    document.getElementById('panel-'+t).classList.toggle('hidden', t!==tab);
+    const btn = document.getElementById('tab-'+t);
+    btn.className = btn.className.replace(/tab-\w+/,'') + (t===tab ? ' tab-active' : ' tab-inactive');
+    btn.classList.add('text-xs','font-bold','px-4','py-2','rounded-xl','border','transition');
+    if (t===tab) btn.classList.add('border-transparent');
+    else btn.classList.add('border-slate-200');
+  });
+}
+function openLightbox(src, fname) {
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lb-title').textContent = fname.replace(/_/g,' ').replace('.png','');
+  document.getElementById('lightbox').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+</script>
+</body>
+</html>
