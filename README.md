@@ -1,4 +1,4 @@
-# Data_Mining_Project
+# Detecting-Malicious-Users-With-Clustering
 Detecting malicious user behavior on social media platforms through clustering analysis
 ## Key Features
 - **Data Preprocessing:** Cleaning and structuring raw social media interaction logs.
